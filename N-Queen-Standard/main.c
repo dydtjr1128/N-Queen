@@ -1,6 +1,5 @@
 /* C/C++ program to solve N Queen Problem using
 backtracking */
-
 #include<stdio.h> 
 #include<stdbool.h> 
 #include<memory.h>
@@ -20,71 +19,40 @@ void printSolution(int **board)
 	}
 }
 
-void printSolution2(int **board, int **boardTemp)
-{
-	for (int i = 0; i < N; i++)
-	{
-		for (int j = 0; j < N; j++)
-			printf(" %d ", board[i][j]);
-		printf("\t");
-		for (int j = 0; j < N; j++)
-			printf(" %d ", boardTemp[i][j]);
-		printf("\n");
-	}
-}
-void fillValue(int **boardTemp, int row, int col, int value) {
-	int i, j;
-	for (i = col; i < N; i++) //--->
-		boardTemp[row][i] += value;
-	for (i = row, j = col; i >= 0 && j < N; i--, j++)//right upper
-		boardTemp[i][j] += value;
-	for (i = row, j = col; j < N && i < N; i++, j++)//rignt lower
-		boardTemp[i][j] += value;
-}
-
 /* A utility function to check if a queen can
 be placed on board[row][col]. Note that this
 function is called when "col" queens are
 already placed in columns from 0 to col -1.
 So we need to check only left side for
 attacking queens */
-bool isSafe(int **board, int **boardTemp, int row, int col)
+bool isSafe(int **board, int row, int col)
 {
 	int i, j;
 
-	if (boardTemp[row][col])
-		return false;
-
-	int n;
-	for (int i = N - 1; i >= col + 1; i--) {//n부터하는게 빠를듯
-		int c = n= 0;
-		int t = i - col;
-		for (int j = 0; j < N; j++) {
-			if (j == row || j == row - t || j == row + t) {
-				n++;
-				continue;
-			}
-			else if (boardTemp[j][i])
-				c++;			
-		}		
-		if (c == N-n)
+	/* Check this row on left side */
+	for (i = 0; i < col; i++)
+		if (board[row][i])
 			return false;
-	}
 
-	fillValue(boardTemp, row, col, 1);
+	/* Check upper diagonal on left side */
+	for (i = row, j = col; i >= 0 && j >= 0; i--, j--)
+		if (board[i][j])
+			return false;
+
+	/* Check lower diagonal on left side */
+	for (i = row, j = col; j >= 0 && i < N; i++, j--)
+		if (board[i][j])
+			return false;
 
 	return true;
 }
 
 /* A recursive utility function to solve N
 Queen problem */
-bool solveNQUtil(int **board, int **boardTemp, int col)
+bool solveNQUtil(int **board, int col)
 {
 	/* base case: If all queens are placed
 	then return true */
-	/*int **boardTemp;
-	memset(boardTemp, 0, sizeof(int)*N*N);*/
-
 	if (col >= N)
 		return true;
 
@@ -94,38 +62,25 @@ bool solveNQUtil(int **board, int **boardTemp, int col)
 	{
 		/* Check if the queen can be placed on
 		board[i][col] */
-		if (isSafe(board, boardTemp, i, col))
+		if (isSafe(board, i, col))
 		{
 			/* Place this queen in board[i][col] */
 			board[i][col] = 1;
 
-
-#ifdef MYLOG
-			printf("------- [%d][%d] -------\n", i, col);
-			printSolution2(board, boardTemp);
-#endif
-
 			/* recur to place rest of the queens */
-			if (solveNQUtil(board, boardTemp, col + 1))
+			if (solveNQUtil(board, col + 1))
 				return true;
 
 			/* If placing queen in board[i][col]
 			doesn't lead to a solution, then
 			remove queen from board[i][col] */
-
-			fillValue(boardTemp, i, col, -1);
-
 			board[i][col] = 0; // BACKTRACK 
-#ifdef MYLOG
-			printf("------- b[%d][%d] -------\n", i, col);
-			printSolution2(board, boardTemp);
-#else
+
 			count++;
 			printSolution(board);
 			for (int i = 0; i < N * 3; i++)
 				printf("-");
 			printf("<BT:%d>\n", count);
-#endif
 
 		}
 	}
@@ -145,18 +100,14 @@ solutions, this function prints one  of the
 feasible solutions.*/
 bool solveNQ()
 {
-	int **board, **boardTemp;
-	start = clock();
+	int **board;
 	board = (int **)malloc(sizeof(int *)*N);
-	boardTemp = (int **)malloc(sizeof(int *)*N);
 	for (int i = 0; i < N; i++) {
 		board[i] = (int *)malloc(sizeof(int *)*N);
-		boardTemp[i] = (int *)malloc(sizeof(int *)*N);
 		memset(board[i], 0, sizeof(int *)*N);
-		memset(boardTemp[i], 0, sizeof(int *)*N);
 	}
 
-	if (solveNQUtil(board, boardTemp, 0) == false)
+	if (solveNQUtil(board, 0) == false)
 	{
 		printf("Solution does not exist");
 		return false;
